@@ -27207,6 +27207,7 @@ parcelHelpers.defineInteropFlag(exports);
 var _jsxRuntime = require("react/jsx-runtime");
 var _react = require("react");
 var _graphView = require("./graph-view");
+var _reactBootstrap = require("react-bootstrap");
 var __extends = undefined && undefined.__extends || function() {
     var extendStatics = function(d1, b1) {
         extendStatics = Object.setPrototypeOf || ({
@@ -27227,6 +27228,16 @@ var __extends = undefined && undefined.__extends || function() {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 }();
+var __assign = undefined && undefined.__assign || function() {
+    __assign = Object.assign || function(t) {
+        for(var s, i = 1, n = arguments.length; i < n; i++){
+            s = arguments[i];
+            for(var p in s)if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var NFAView1 = function(_super) {
     __extends(NFAView, _super);
     function NFAView(props) {
@@ -27247,10 +27258,36 @@ var NFAView1 = function(_super) {
     // console.log(this.props.gnfa.getGraph())
     };
     NFAView.prototype.render = function() {
-        return _jsxRuntime.jsx(_graphView.GraphView, {
-            graph: this.props.gnfa.getGraph(),
-            onSelectNode: this.onSelectNode,
-            height: "700px"
+        return _jsxRuntime.jsxs(_jsxRuntime.Fragment, {
+            children: [
+                _jsxRuntime.jsx(_graphView.GraphView, {
+                    graph: this.props.gnfa.getGraph(),
+                    onSelectNode: this.onSelectNode,
+                    height: "700px"
+                }, void 0),
+                _jsxRuntime.jsxs(_reactBootstrap.Alert, __assign({
+                    variant: "info"
+                }, {
+                    children: [
+                        _jsxRuntime.jsx(_reactBootstrap.Alert.Heading, {
+                            children: "Info"
+                        }, void 0),
+                        _jsxRuntime.jsxs("ul", {
+                            children: [
+                                _jsxRuntime.jsx("li", {
+                                    children: "for rip state, click on the node in the graph new graph will be generated"
+                                }, void 0),
+                                _jsxRuntime.jsx("li", {
+                                    children: "virtual start state is @ and virtual end state is # these states can't be riped"
+                                }, void 0),
+                                _jsxRuntime.jsx("li", {
+                                    children: "the final expression between the start and end state is the expression of the NFA"
+                                }, void 0)
+                            ]
+                        }, void 0)
+                    ]
+                }), void 0)
+            ]
         }, void 0);
     };
     return NFAView;
@@ -27262,7 +27299,7 @@ exports.default = NFAView1;
   window.$RefreshReg$ = prevRefreshReg;
   window.$RefreshSig$ = prevRefreshSig;
 }
-},{"react/jsx-runtime":"6Ds2u","react":"4mchR","./graph-view":"bLJIf","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"9pz13"}],"bLJIf":[function(require,module,exports) {
+},{"react/jsx-runtime":"6Ds2u","react":"4mchR","./graph-view":"bLJIf","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"9pz13","react-bootstrap":"9qMdX"}],"bLJIf":[function(require,module,exports) {
 var $parcel$ReactRefreshHelpers$40d8 = require("@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
 var prevRefreshReg = window.$RefreshReg$;
 var prevRefreshSig = window.$RefreshSig$;
@@ -77177,7 +77214,7 @@ var NFA1 = function(_super) {
      * validate a raw structure of an NFA
      * @param nfa
      */ NFA.validateNFA = function(nfa) {
-        if (!nfa.start) throw new Error('NFA must have a start state');
+        if (nfa.start === undefined || nfa.start === null) throw new Error('NFA must have a start state');
         if (!nfa.accept) throw new Error('NFA must have accept states');
         if (!nfa.states) throw new Error('NFA must have states');
         if (!nfa.states[nfa.start]) throw new Error("".concat(nfa.start, " is not a valid start state"));
@@ -77185,8 +77222,9 @@ var NFA1 = function(_super) {
             var accept = _a[_i];
             if (!nfa.states[accept]) throw new Error("".concat(accept, " is not a valid accept state"));
         }
-        for(var state in nfa.states){
-            for(var char in nfa.states[state])for(var _b = 0, _c = nfa.states[state][char]; _b < _c.length; _b++){
+        for(var state in nfa.states)for(var char in nfa.states[state]){
+            if (!nfa.states[state][char]) throw new Error("remove unused transition from ".concat(state, " on expression ").concat(char));
+            for(var _b = 0, _c = nfa.states[state][char]; _b < _c.length; _b++){
                 var next = _c[_b];
                 if (!nfa.states[next]) throw new Error("".concat(next, " is not a valid state"));
             }
