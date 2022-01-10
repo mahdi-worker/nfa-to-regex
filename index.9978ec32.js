@@ -27262,13 +27262,27 @@ var NFAView1 = function(_super) {
                 'warning',
                 'info', 
             ];
-            var unitLen = 1 / (_this.props.gnfa.getPureStates().length + _this.rippedStack.length) * 100;
-            for(var i = 0; i < _this.rippedStack.length; i++)res.push({
-                variant: variants[i % variants.length],
-                label: _this.rippedStack[i],
-                now: unitLen,
-                key: i
-            });
+            var totalStatesCount = _this.props.gnfa.getPureStates().length + _this.rippedStack.length;
+            var unitLen = 1 / totalStatesCount * 100;
+            var i = 0;
+            while(i < _this.rippedStack.length){
+                res.push({
+                    variant: variants[i % variants.length],
+                    label: _this.rippedStack[i],
+                    now: unitLen,
+                    key: i
+                });
+                i++;
+            }
+            while(i < totalStatesCount){
+                res.push({
+                    variant: variants[i % variants.length],
+                    label: '',
+                    now: 0,
+                    key: i
+                });
+                i++;
+            }
             return res;
         };
         return _this;
