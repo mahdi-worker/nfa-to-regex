@@ -27242,9 +27242,11 @@ var NFAView1 = function(_super) {
     __extends(NFAView, _super);
     function NFAView(props) {
         var _this = _super.call(this, props) || this;
+        _this.rippedStack = [];
         _this.onSelectNode = function(node) {
             try {
                 _this.props.gnfa.ripState(node.label);
+                _this.rippedStack.push(node.label);
                 _this.forceUpdate();
                 _this.props.setError(null);
             } catch (e) {
@@ -27252,10 +27254,30 @@ var NFAView1 = function(_super) {
                 else console.error(e);
             }
         };
+        _this.generateProgressData = function() {
+            var res = [];
+            var variants = [
+                'success',
+                'danger',
+                'warning',
+                'info', 
+            ];
+            var unitLen = 1 / (_this.props.gnfa.getPureStates().length + _this.rippedStack.length) * 100;
+            for(var i = 0; i < _this.rippedStack.length; i++)res.push({
+                variant: variants[i % variants.length],
+                label: _this.rippedStack[i],
+                now: unitLen,
+                key: i
+            });
+            return res;
+        };
         return _this;
     }
-    NFAView.prototype.componentDidMount = function() {
-    // console.log(this.props.gnfa.getGraph())
+    NFAView.prototype.componentDidUpdate = function(prevProps, prevState, snapshot) {
+        if (this.props.gnfa !== prevProps.gnfa) {
+            this.rippedStack = [];
+            this.forceUpdate();
+        }
     };
     NFAView.prototype.render = function() {
         return _jsxRuntime.jsxs(_jsxRuntime.Fragment, {
@@ -27265,6 +27287,20 @@ var NFAView1 = function(_super) {
                     onSelectNode: this.onSelectNode,
                     height: "700px"
                 }, void 0),
+                _jsxRuntime.jsx(_reactBootstrap.ProgressBar, __assign({
+                    animated: true,
+                    className: "states-progress-bar bg-dark"
+                }, {
+                    children: this.generateProgressData().map(function(data) {
+                        return _jsxRuntime.jsx(_reactBootstrap.ProgressBar, {
+                            striped: true,
+                            animated: true,
+                            variant: data.variant,
+                            now: data.now,
+                            label: data.label
+                        }, data.key);
+                    })
+                }), void 0),
                 _jsxRuntime.jsxs(_reactBootstrap.Alert, __assign({
                     variant: "info"
                 }, {
@@ -27299,7 +27335,7 @@ exports.default = NFAView1;
   window.$RefreshReg$ = prevRefreshReg;
   window.$RefreshSig$ = prevRefreshSig;
 }
-},{"react/jsx-runtime":"6Ds2u","react":"4mchR","./graph-view":"bLJIf","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"9pz13","react-bootstrap":"9qMdX"}],"bLJIf":[function(require,module,exports) {
+},{"react/jsx-runtime":"6Ds2u","react":"4mchR","./graph-view":"bLJIf","react-bootstrap":"9qMdX","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"9pz13"}],"bLJIf":[function(require,module,exports) {
 var $parcel$ReactRefreshHelpers$40d8 = require("@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
 var prevRefreshReg = window.$RefreshReg$;
 var prevRefreshSig = window.$RefreshSig$;
@@ -77217,16 +77253,16 @@ var NFA1 = function(_super) {
         if (nfa.start === undefined || nfa.start === null) throw new Error('NFA must have a start state');
         if (!nfa.accept) throw new Error('NFA must have accept states');
         if (!nfa.states) throw new Error('NFA must have states');
-        if (!nfa.states[nfa.start]) throw new Error("".concat(nfa.start, " is not a valid start state"));
+        if (!(nfa.start in nfa.states)) throw new Error("".concat(nfa.start, " is not a valid start state"));
         for(var _i = 0, _a = nfa.accept; _i < _a.length; _i++){
             var accept = _a[_i];
-            if (!nfa.states[accept]) throw new Error("".concat(accept, " is not a valid accept state"));
+            if (!(accept in nfa.states)) throw new Error("".concat(accept, " is not a valid accept state"));
         }
         for(var state in nfa.states)for(var char in nfa.states[state]){
             if (!nfa.states[state][char]) throw new Error("remove unused transition from ".concat(state, " on expression ").concat(char));
             for(var _b = 0, _c = nfa.states[state][char]; _b < _c.length; _b++){
                 var next = _c[_b];
-                if (!nfa.states[next]) throw new Error("".concat(next, " is not a valid state"));
+                if (!(next in nfa.states)) throw new Error("".concat(next, " is not a valid state"));
             }
         }
     };
@@ -77272,7 +77308,7 @@ var GNFA1 = function(_super) {
                 this_1._automation.states[from][char].forEach(function(to) {
                     var literal = new _expression.Literal(char);
                     if (!_this._pathMap[from][to]) _this._pathMap[from][to] = literal;
-                    else _this._pathMap[from][to] = new _expression.Or(_this._pathMap[from][to], literal);
+                    else _this._pathMap[from][to] = _expression.Or.of(_this._pathMap[from][to], literal);
                 });
             };
             for(var char1 in this_1._automation.states[from])_loop_2(char1);
@@ -77309,10 +77345,10 @@ var GNFA1 = function(_super) {
                 var otherPath = void 0;
                 if (fts && stt) {
                     otherPath = fts;
-                    if (sts) otherPath = new _expression.Concatenation(otherPath, new _expression.Star(sts));
-                    otherPath = new _expression.Concatenation(otherPath, stt);
+                    if (sts) otherPath = _expression.Concatenation.of(otherPath, _expression.Star.of(sts));
+                    otherPath = _expression.Concatenation.of(otherPath, stt);
                 }
-                if (otherPath && directPath) newPathMap[from][to] = new _expression.Or(otherPath, directPath);
+                if (otherPath && directPath) newPathMap[from][to] = _expression.Or.of(otherPath, directPath);
                 else newPathMap[from][to] = otherPath || directPath;
             }
         }
@@ -77328,9 +77364,10 @@ var GNFA1 = function(_super) {
         };
         for(var _i = 0, _a = this._automation.accept; _i < _a.length; _i++){
             var accept = _a[_i];
-            this._automation.states[accept]['$'] = [
-                '#'
-            ];
+            if (!this._automation.states[accept]) this._automation.states[accept] = {
+            };
+            if (!this._automation.states[accept]['$']) this._automation.states[accept]['$'] = [];
+            this._automation.states[accept]['$'].push('#');
         }
         this._automation.start = '@';
         this._automation.accept = [
@@ -77390,6 +77427,11 @@ var Star1 = function() {
         if (this.expression instanceof Literal1) return expression + "*";
         return "(" + expression + ")*";
     };
+    Star.of = function(expression) {
+        if (expression.evaluate() === '$') return new Literal1('$');
+        if (expression instanceof Star) return expression;
+        return new Star(expression);
+    };
     return Star;
 }();
 var Or1 = function() {
@@ -77401,6 +77443,10 @@ var Or1 = function() {
         var left = this.left.evaluate();
         var right = this.right.evaluate();
         return left + "+" + right;
+    };
+    Or.of = function(left, right) {
+        if (left.evaluate() === right.evaluate()) return left;
+        return new Or(left, right);
     };
     return Or;
 }();
@@ -77414,9 +77460,12 @@ var Concatenation1 = function() {
         var right = this.right.evaluate();
         if (this.left instanceof Or1) left = "(" + left + ")";
         if (this.right instanceof Or1) right = "(" + right + ")";
-        if (left === '$') left = '';
-        if (right === '$') right = '';
         return left + right || '$';
+    };
+    Concatenation.of = function(left, right) {
+        if (left.evaluate() === '$') return right;
+        if (right.evaluate() === '$') return left;
+        return new Concatenation(left, right);
     };
     return Concatenation;
 }();
