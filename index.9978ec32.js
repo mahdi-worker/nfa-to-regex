@@ -77264,6 +77264,8 @@ var NFA1 = function(_super) {
      * validate a raw structure of an NFA
      * @param nfa
      */ NFA.validateNFA = function(nfa) {
+        if ('@' in nfa.states) throw new Error('@ is a reserved state name');
+        if ('#' in nfa.states) throw new Error('# is a reserved state name');
         if (nfa.start === undefined || nfa.start === null) throw new Error('NFA must have a start state');
         if (!nfa.accept) throw new Error('NFA must have accept states');
         if (!nfa.states) throw new Error('NFA must have states');
